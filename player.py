@@ -1,6 +1,7 @@
 import random
 import pygame
 from numpy import sin, cos, deg2rad
+from color import colorTransformer as ct
 
 stepsPerMove = 3
 holeLikelihood = 0.95
@@ -10,10 +11,10 @@ def decision():
 
 
 class Player(object):
-    def __init__(self, color, score, left, right, width, height, name):
+    def __init__(self, score, left, right, width, height, name):
         self.x = random.randint(100, 1400)
         self.y = random.randint(100, 1100)
-        self.color = color
+        self.color = ct(name)
         self.score = score
         self.alive = True
         self.left = left
@@ -84,4 +85,7 @@ class Player(object):
         self.y = calculatedY
         if self.moveIsOutOfBounds(self.x, self.y):
             self.alive = False
+        #pixelArray = pygame.PixelArray(win)[self.x][self.y]
+        #if pixelArray is not (0, 0, 0):
+        #    self.alive = False
         self.draw(win)

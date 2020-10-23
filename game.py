@@ -1,44 +1,83 @@
 import pygame
-import time
 import sys
 
+from color import colorTransformer as ct
 from button import Button
 from player import Player
 from textblit import Textblit
 
+#################################################################################################
+# Board size, game update tickrate, and alterable controller list and round number              #
+#################################################################################################
 WINDOW_WIDTH = 1500
 WINDOW_HEIGHT = 1200
 tickrate = 40
 timedelay = 10
+clock = pygame.time.Clock()
 
-pygame.init()
-window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-window.fill((0, 0, 0))
-pygame.display.set_caption("Achtung die Kurve - Zatacka")
-
-colors = [((255, 255, 255), "White"), ((255, 0, 0), "Red"), ((0, 255, 255), "Cyan"), ((255, 255, 0), "Yellow"),
-          ((255, 0, 255), "Pink"), ((0, 128, 0), "Green"), ((0, 0, 255), "Blue"), ((255, 165, 0), "Orange")]
-playerList = []
-buttons = []
 controllerList = [(pygame.K_LEFT, pygame.K_RIGHT), (pygame.K_q, pygame.K_a), (pygame.K_z, pygame.K_x),
                   (pygame.K_1, pygame.K_2), (pygame.K_6, pygame.K_9), (pygame.K_v, pygame.K_b)]
-numberOfPlayers = 1
+
 remainingRounds = 5
 
-man = Player(colors[numberOfPlayers - 1][0], 0, controllerList[numberOfPlayers - 1][0],
-             controllerList[numberOfPlayers - 1][1]
-             , WINDOW_WIDTH, WINDOW_HEIGHT, colors[numberOfPlayers - 1][1])
+#################################################################################################
+# Initialize pygame window and required lists for game / gameloop                               #
+#################################################################################################
+pygame.init()
+window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+window.fill(ct("Black"))
+pygame.display.set_caption("Achtung die Kurve - Zatacka")
+colors = ["White", "Red", "Cyan", "Yellow", "Pink", "Green", "Blue", "Orange"]
+playerList = []
+buttons = []
+
+#################################################################################################
+# Initialize the first player and add it to the playerlist                                      #
+#################################################################################################
+man = Player(0, controllerList[0][0],
+             controllerList[0][1]
+             , WINDOW_WIDTH, WINDOW_HEIGHT, colors[0])
 playerList.append(man)
-startButton = Button(200, 1000, 200, 70, (255, 0, 0), "Start")
-morePlayersButton = Button(450, 1000, 200, 70, (255, 0, 0), "+1 Player")
-fewerPlayersButton = Button(700, 1000, 200, 70, (255, 0, 0), "-1 Player")
+
+startButton = Button(200, 1000, 200, 70, "Red", "Start")
+morePlayersButton = Button(450, 1000, 200, 70, "Red", "+1 Player")
+fewerPlayersButton = Button(700, 1000, 200, 70, "Red", "-1 Player")
 
 buttons.append(startButton)
 buttons.append(morePlayersButton)
 buttons.append(fewerPlayersButton)
 
-clock = pygame.time.Clock()
-settingUpGame = True
+
+def setUpGame():
+    numberOfPlayers = 1
+    settingUpGame = True
+    while settingUpGame:
+        clock.tick(40)
+        pygame.time.delay(10)
+        drawStartscreen(numberOfPlayers)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+
+                if startButton.isOver(pos):
+                    window.fill((0, 0, 0))
+                    settingUpGame = False
+                    try:
+                        gameLoop()
+                    except pygame.error:
+                        pass
+                elif morePlayersButton.isOver(pos):
+                    if numberOfPlayers < 6:
+                        numberOfPlayers += 1
+                        playerList.append(Player(0, controllerList[numberOfPlayers - 1][0],
+                                                 controllerList[numberOfPlayers - 1][1], WINDOW_WIDTH, WINDOW_HEIGHT,
+                                                 colors[numberOfPlayers - 1]))
+                elif fewerPlayersButton.isOver(pos):
+                    if numberOfPlayers > 1:
+                        numberOfPlayers -= 1
+                        playerList.pop()
 
 
 def gameLoop():
@@ -80,8 +119,8 @@ def gameLoop():
 
 
 def drawScore():
-    window.fill((0, 0, 0))
-    restartButton = Button(WINDOW_WIDTH//2 - 150, WINDOW_HEIGHT//2 - 37, 300, 75, (255, 0, 0), "New round")
+    window.fill(ct("Black"))
+    restartButton = Button(WINDOW_WIDTH // 2 - 150, WINDOW_HEIGHT // 2 - 37, 300, 75, "Red", "New round")
     restartButton.draw(window)
     for index, player in enumerate(playerList):
         textblit = Textblit(player.name + ": " + str(player.score), 500, 100 + index * 40, player.color, "calibri", 20)
@@ -94,7 +133,7 @@ def drawScore():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 if restartButton.isOver(pos):
-                    window.fill((0, 0, 0))
+                    window.fill(ct("Black"))
                     gameLoop()
 
 
@@ -114,42 +153,20 @@ def drawWindow():
     except pygame.error:
         pygame.quit()
 
-def drawStartscreen():
-    window.fill((0, 0, 0))
+
+def drawStartscreen(numOfPlayers):
+    window.fill(ct("Black"))
     for button in buttons:
         button.draw(window)
-    participantText = Textblit("There are currently " + str(numberOfPlayers) + " participant(s)",
-                               WINDOW_WIDTH//2, WINDOW_HEIGHT//2, (0, 255, 255))
+    participantText = Textblit("There are currently " + str(numOfPlayers) + " participant(s)",
+                               WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2, ct("Cyan"))
     participantText.blitText(window)
     drawWindow()
 
 
-while settingUpGame:
-    clock.tick(40)
-    pygame.time.delay(10)
-    drawStartscreen()
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            pos = pygame.mouse.get_pos()
-
-            if startButton.isOver(pos):
-                window.fill((0, 0, 0))
-                settingUpGame = False
-                try:
-                    gameLoop()
-                except pygame.error:
-                    pass
-            elif morePlayersButton.isOver(pos):
-                if numberOfPlayers < 6:
-                    numberOfPlayers += 1
-                    playerList.append(Player(colors[numberOfPlayers - 1][0], 0, controllerList[numberOfPlayers - 1][0],
-                                             controllerList[numberOfPlayers - 1][1], WINDOW_WIDTH, WINDOW_HEIGHT,
-                                             colors[numberOfPlayers - 1][1]))
-            elif fewerPlayersButton.isOver(pos):
-                if numberOfPlayers > 1:
-                    numberOfPlayers -= 1
-                    playerList.pop()
+#################################################################################################
+# Start the menuscreen and prompt the user to select number of players and to start game        #
+#################################################################################################
+setUpGame()
 
 pygame.quit()

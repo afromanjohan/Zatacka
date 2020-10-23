@@ -1,5 +1,5 @@
 import pygame
-
+from color import colorTransformer as ct
 
 class Button(object):
     def __init__(self, x, y, width, height, color, text=""):
@@ -7,7 +7,7 @@ class Button(object):
         self.y = y
         self.width = width
         self.height = height
-        self.color = color
+        self.color = ct(color)
         self.text = text
         self.active = True
 
@@ -17,7 +17,7 @@ class Button(object):
         pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.height))
         if self.text is not "":
             font = pygame.font.SysFont('calibri', 50)
-            text = font.render(self.text, 1, (0, 0, 0))
+            text = font.render(self.text, 1, ct("Black"))
             win.blit(text, (self.x + (self.width/2 - text.get_width()/2),
                             self.y + (self.height/2 - text.get_height()/2)))
 
